@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const handleExit = require('./handleExit');
 const yargsInteractive = require('yargs-interactive');
 const { Builder, By, Key } = require('selenium-webdriver');
 const firefox = require('selenium-webdriver/firefox');
@@ -347,6 +348,7 @@ const work = async (driver, initRun) => {
 
 (async () => {
 	const driver = await initDriver();
+	await handleExit(driver);
 	let initRun = true;
 	while (true) {
 		const res = await work(driver, initRun);
