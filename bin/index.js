@@ -4,7 +4,7 @@ const yargsInteractive = require('yargs-interactive');
 const { Builder, By, Key } = require('selenium-webdriver');
 const firefox = require('selenium-webdriver/firefox');
 const firefoxOptions = new firefox.Options();
-// firefoxOptions.headless();
+firefoxOptions.headless();
 const profile = firefoxOptions.setProfile(
 	'/Users/victor/Library/Application Support/Firefox/Profiles/48r1pws3.default'
 );
@@ -61,8 +61,7 @@ const multiElementCommandOptions = {
 		type: 'list',
 		describe: 'What do you want me to do with the elements?',
 		choices: [
-			'Find child',
-			'Find children',
+			'Find child/children',
 			'Get attribute',
 			'Get CSS value',
 			'Get ID',
@@ -80,8 +79,7 @@ const singleElementCommandOptions = {
 		describe: 'What do you want me to do with the element?',
 		choices: [
 			'Click',
-			'Find child',
-			'Find children',
+			'Find child/children',
 			'Get attribute',
 			'Get CSS value',
 			'Get ID',
@@ -212,11 +210,18 @@ const checkCommand = async (element, command, driver, counter = false, att = fal
 					});
 				});
 				break;
-			case 'Find child':
-				// prompt which child
-				break;
-			case 'Find children':
-				// prompt which children
+			case 'Find child/children':
+				const { selectorType, multiple } = await yargsInteractive().interactive(
+					selectorCountOptions
+				);
+				const { selector } = await yargsInteractive().interactive(selectorOptions);
+
+				let el = await checkSelectorType(element, multiple, selectorType, selector);
+				if (multiple === 'Single') {
+					await handleSingleElement(el, driver);
+				} else {
+					await handleMultipleElements(el, driver);
+				}
 				break;
 			case 'Get attribute':
 				let attribute = att;
