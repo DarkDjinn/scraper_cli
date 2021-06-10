@@ -173,8 +173,11 @@ const handleMultipleElements = async (element, driver) => {
 	const { command } = await yargsInteractive().interactive(multiElementCommandOptions);
 	let counter = 1;
 	let attribute;
+	let cssValue;
 	for await (let el of element) {
-		attribute = await checkCommand(el, command, driver, counter, attribute);
+		const res = await checkCommand(el, command, driver, counter, attribute, cssValue);
+		attribute = res.attribute;
+		cssValue = res.cssValue;
 		counter++;
 	}
 };
@@ -184,7 +187,14 @@ const handleSingleElement = async (element, driver) => {
 	await checkCommand(element, command, driver);
 };
 
-const checkCommand = async (element, command, driver, counter = false, att = false) => {
+const checkCommand = async (
+	element,
+	command,
+	driver,
+	counter = false,
+	att = false,
+	css = false
+) => {
 	try {
 		switch (command) {
 			case 'Click':
@@ -237,10 +247,19 @@ const checkCommand = async (element, command, driver, counter = false, att = fal
 				if (value) {
 					console.log({ attribute, value, innerText });
 				}
-				return attribute;
+				return { attribute, cssValue: false };
 			case 'Get CSS value':
-				// prompt css style property
-				break;
+				let cssValue = css;
+				if (!css) {
+					const res = await yargsInteractive().interactive({
+						interactive: { default: true },
+						cssValue: { type: 'input', describe: 'Enter the CSS value' },
+					});
+					cssValue = res.cssValue;
+				}
+				const val = await element.getCssValue(cssValue);
+				console.log(val);
+				return { cssValue, attribute: false };
 			case 'Get ID':
 				const id = await element.getId();
 				if (id) {
